@@ -9,7 +9,7 @@ The project includes **two scenarios**:
 
 This simulator is intentionally simplified (one buffer per switch) in order to highlight the fundamental deadlock mechanism.
 
----
+
 
 ## Overview
 
@@ -24,7 +24,7 @@ In networks with **cyclic dependencies**, PFC can cause a pathological condition
 
 This is a **deadlock**.
 
----
+
 
 ## What This Code Does
 
@@ -42,7 +42,7 @@ The simulator tracks:
 - when each link becomes paused  
 - whether the system reaches deadlock  
 
----
+
 
 ## Repository Files
 
