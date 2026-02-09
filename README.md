@@ -1,176 +1,422 @@
-# Lossless Networks Project
+# PFC Cyclic Buffer Dependency Simulator
 
-This project simulates **Priority Flow Control (PFC)**-induced cyclic buffer dependency (CBD) in a small fat‑tree/leaf‑spine topology. It includes two scenarios:
+This repository contains a Python-based simulation of **Priority Flow Control (PFC)** behavior in a network with **cyclic buffer dependencies**. The simulator demonstrates how cyclic dependencies can lead to **buffer buildup**, **link pauses**, and eventually **deadlock** under higher traffic injection.
 
-- **Scenario 1:** two flows create a buffer dependency cycle **without** deadlock.
-- **Scenario 2:** adding a third flow pushes the system past the threshold and **deadlock forms**.
+The project includes **two scenarios**:
 
-The simulator produces topology diagrams, buffer‑occupancy plots, and PFC pause‑event timelines.
+- **Scenario 1:** Cyclic dependency without deadlock  
+- **Scenario 2:** Same dependency with an extra flow causing deadlock  
+
+This simulator is intentionally simplified (one buffer per switch) in order to highlight the fundamental deadlock mechanism.
+
+---
+
+## Overview
+
+Priority Flow Control (PFC) is a mechanism used in lossless Ethernet networks (for example RoCE) to prevent packet loss due to buffer overflow. When a switch buffer reaches a configured threshold, it sends a pause signal upstream to stop incoming traffic.
+
+In networks with **cyclic dependencies**, PFC can cause a pathological condition where:
+
+- each buffer is full  
+- every upstream link is paused  
+- no buffer can drain  
+- the entire system becomes frozen  
+
+This is a **deadlock**.
+
+---
+
+## What This Code Does
+
+This simulator models:
+
+- a set of switches and links  
+- traffic flows that inject packets into the network  
+- buffers with limited capacity  
+- a PFC threshold that triggers pause behavior  
+- cyclic dependencies between buffers  
+
+The simulator tracks:
+
+- buffer occupancy over time  
+- when each link becomes paused  
+- whether the system reaches deadlock  
+
+---
+
+## Repository Files
+
+| File | Description |
+|------|-------------|
+| `pfc_cyclic_dependency_sim.py` | Main simulation script |
+| `pfc_scenario_1_occupancy.png` | Buffer occupancy plot (Scenario 1) |
+| `pfc_scenario_1_link_pause.png` | Link pause timeline plot (Scenario 1) |
+| `pfc_scenario_1.png` | Topology visualization (Scenario 1) |
+| `pfc_scenario_2_occupancy.png` | Buffer occupancy plot (Scenario 2) |
+| `pfc_scenario_2_link_pause.png` | Link pause timeline plot (Scenario 2) |
+| `pfc_scenario_2.png` | Topology visualization (Scenario 2) |
 
 ---
 
 ## Dependencies
 
-Python 3.8+ and the following packages:
+### Python Version
 
-- `matplotlib`
-- `networkx`
-- `numpy`
+This code was tested on:
 
-Install (example):
+- Python 3.8+
+- Python 3.10+
+- Python 3.11+
+
+### Required Python Packages
+
+Install the required packages using:
 
 ```bash
-python -m pip install matplotlib networkx numpy
+pip install numpy matplotlib networkx
 ```
+
+These packages are used for:
+
+- `numpy` for simulation updates and state tracking  
+- `matplotlib` for generating plots  
+- `networkx` for visualizing the buffer dependency graph  
 
 ---
 
 ## How to Run
 
-From the project folder:
+Clone the repository:
 
 ```bash
-python pfc_cyclic_dependency_sim.py --scenario both
+git clone https://github.com/<your-username>/pfc-cyclic-deadlock-simulator.git
+cd pfc-cyclic-deadlock-simulator
 ```
 
-You can also run a single scenario:
+Run the simulation script:
 
 ```bash
-python pfc_cyclic_dependency_sim.py --scenario 1
-python pfc_cyclic_dependency_sim.py --scenario 2
+python pfc_cyclic_dependency_sim.py
 ```
 
-Optional flags:
+---
 
-- `--steps N`  (default: 30) — number of simulation steps.
-- `--out_dir PATH`  (default: `.../fattree_lossless_networks/plots`)
-- `--reports_dir PATH` (default: `.../fattree_lossless_networks/reports`)
+## Output Generated
+
+When you run the script, it generates:
+
+### 1. Buffer Occupancy Plot
+
+Shows the number of buffered packets per switch buffer over time.
+
+Includes:
+
+- buffer capacity line  
+- PFC threshold line  
+- buffer buildup behavior  
+
+### 2. Link Pause Timeline Plot
+
+Shows when each link becomes paused.
+
+Each dot means:
+
+- at that timestep, the downstream buffer is above threshold  
+- therefore PFC pause is active on that link  
+
+### 3. Dependency Graph Visualization
+
+Shows the cyclic dependency between buffers and the flows contributing to it.
 
 ---
 
-## What This Does
+# Network Model
 
-The simulator models:
+## Buffers
 
-- A **cycle of switch buffers** (L0 → S0 → L2 → S1 → L0).
-- **PFC pause** when a downstream buffer reaches a threshold.
-- Buffer occupancy over time and pause events on each link.
+The simulator models each switch as having a **single shared buffer**.
 
-Deadlock is defined as:
+This is a simplification. In real hardware:
 
-> **All buffers in the cycle are ≥ the PFC threshold and the cycle is blocked.**
+- ingress and egress queues are separate  
+- host-facing egress may drain independently  
+- virtual lanes and priority queues exist  
 
----
-
-## Outputs
-
-Generated under:
-
-- `plots/`
-- `reports/`
-
-### Plots (per scenario)
-
-1. **Topology + flows + dependency cycle**  
-   `plots/pfc_scenario_1.png`  
-   `plots/pfc_scenario_2.png`
-
-2. **Buffer occupancy (cycle switches)**  
-   `plots/pfc_scenario_1_occupancy.png`  
-   `plots/pfc_scenario_2_occupancy.png`
-
-3. **PFC pause events (per switch)**  
-   `plots/pfc_scenario_1_pfc_pause.png`  
-   `plots/pfc_scenario_2_pfc_pause.png`
-
-4. **PFC pause events (per link)**  
-   `plots/pfc_scenario_1_link_pause.png`  
-   `plots/pfc_scenario_2_link_pause.png`
-
-### Reports (per scenario)
-
-`reports/pfc_scenario_1_summary.txt`  
-`reports/pfc_scenario_2_summary.txt`
-
-Each report includes:
-
-- buffer capacity and PFC threshold
-- per‑flow injection rate and total packets
-- deadlock status and time
-- cycle definition
-- per‑switch table of **Initial**, **Final**, and **PacketsPassed**
-- a note listing switches **not** part of the cycle
+This simplification is intentional and helps isolate the deadlock mechanism.
 
 ---
 
-## Example Plots
+## PFC Rule Used
 
-Below are example figure placements (paths match the generated outputs):
+A link is considered **paused** when:
 
-### Scenario 1 (No Deadlock)
+**downstream_buffer >= PFC threshold**
 
-![Scenario 1 Topology](plots/pfc_scenario_1.png)
-
-![Scenario 1 Occupancy](plots/pfc_scenario_1_occupancy.png)
-
-### Scenario 2 (Deadlock)
-
-![Scenario 2 Topology](plots/pfc_scenario_2.png)
-
-![Scenario 2 Occupancy](plots/pfc_scenario_2_occupancy.png)
+Meaning:  
+If a packet would be forwarded into a buffer that is already above threshold, forwarding is blocked.
 
 ---
 
-## Scenario Explanations
+# Scenario 1: Cyclic Dependency Without Deadlock
 
-### Scenario 1 — No Deadlock
+## Description
 
-- **Flows:** F1 and F2 only.
-- **Load:** lower total injection.
-- **Outcome:** buffers rise but at least one switch in the cycle remains below the PFC threshold at every step.
-- **Result:** the cycle keeps draining → **no deadlock**.
+Scenario 1 models a cyclic dependency involving **two flows**:
 
-### Scenario 2 — Deadlock
+- **F1:** `L0 → S0 → L2`  
+- **F2:** `L2 → S1 → L0`  
 
-- **Flows:** F1 + F2 + F3.
-- **Load:** F3 adds extra pressure into the cycle.
-- **Outcome:** all cycle buffers reach ≥ PFC threshold at the same time.
-- **Result:** PFC pauses every downstream hop → **circular wait → deadlock**.
+This forms the dependency cycle:
 
----
+`L0 → S0 → L2 → S1 → L0`
 
-## Analysis Notes (Key Points)
-
-### Why L0/L2 Can Look More Congested Than S0/S1
-
-- L0 and L2 sit at the **cycle entry points** of injected traffic (F1/F2/F3).
-- When downstream buffers are paused, these entry buffers **keep accumulating**.
-- S0/S1 may briefly drain before the cycle locks, so they can appear less congested early on.
-
-### What’s Different Between the Scenarios
-
-- **Scenario 1:** lighter load; the cycle never crosses the “all buffers ≥ threshold” tipping point.
-- **Scenario 2:** extra flow pushes the system past the tipping point.
-
-### Why Scenario 1 Has No Deadlock
-
-At least one buffer in the cycle can always drain, so the cycle keeps moving.
-
-### Why Scenario 2 Deadlocks
-
-Once all cycle buffers reach the threshold simultaneously:
-
-1. Each downstream hop is paused.
-2. No buffer can drain into the next.
-3. A circular wait forms → **deadlock**.
+However, the system does **not deadlock** because the injection rate is low enough that at least one buffer always remains drainable.
 
 ---
 
-## Model Assumptions / Simplifications
+## Scenario 1 Outputs
 
-- One shared buffer per switch (ingress/egress are not separated).
-- PFC pause triggers when the buffer reaches the threshold.
-- Packets are injected at the start of each timestep, then forwarding occurs.
+### Topology View
 
-If you want a more accurate model (separate ingress/egress buffers, hysteresis, pause duration), the simulator can be extended.
+![Scenario 1 Topology](pfc_scenario_1.png)
 
+### Buffer Occupancy Plot
+
+![Scenario 1 Buffer Occupancy](pfc_scenario_1_occupancy.png)
+
+What we observe:
+
+- L2 reaches the threshold early (around 7 packets)  
+- S1 grows later and stabilizes  
+- the buffers stabilize below capacity  
+- the cycle never becomes fully saturated  
+
+### Link Pause Timeline
+
+![Scenario 1 Pause Timeline](pfc_scenario_1_link_pause.png)
+
+What we observe:
+
+- pauses occur at certain steps  
+- pauses do not persist across all links indefinitely  
+- the system continues draining intermittently  
+
+---
+
+## Why Scenario 1 Has No Deadlock
+
+Scenario 1 avoids deadlock because:
+
+- at least one buffer in the cycle can still drain at each step  
+- PFC never blocks all cycle links simultaneously  
+- the system continues moving, even if partially paused  
+
+The cycle never reaches the tipping point where all cycle buffers are above the threshold at the same time.
+
+---
+
+# Scenario 2: Same Dependency With Extra Flow Causing Deadlock
+
+## Description
+
+Scenario 2 uses the same cyclic dependency as Scenario 1, but adds an extra flow:
+
+- **F1:** `L0 → S0 → L2`  
+- **F2:** `L2 → S1 → L0`  
+- **F3:** `L1 → S0 → L2`  
+
+This extra injection increases load into the cycle.
+
+---
+
+## Scenario 2 Outputs
+
+### Topology View
+
+![Scenario 2 Topology](pfc_scenario_2.png)
+
+### Buffer Occupancy Plot
+
+![Scenario 2 Buffer Occupancy](pfc_scenario_2_occupancy.png)
+
+What we observe:
+
+- buffers grow much faster than Scenario 1  
+- L0 reaches full capacity (10 packets)  
+- S0 and S1 stabilize at higher levels  
+- the cycle becomes saturated  
+- the system reaches a frozen state  
+
+### Link Pause Timeline
+
+![Scenario 2 Pause Timeline](pfc_scenario_2_link_pause.png)
+
+What we observe:
+
+- after a certain time, all links remain paused  
+- pauses become persistent  
+- forwarding stops permanently  
+
+---
+
+## Why Scenario 2 Deadlocks
+
+Scenario 2 deadlocks because:
+
+- the extra flow F3 injects traffic into the cycle (via S0 → L2), raising occupancy faster  
+- once all cycle buffers reach capacity, PFC is asserted on every downstream hop  
+- with every hop paused and no buffer able to drain into the next one, the system reaches a circular wait condition  
+
+This is deadlock.
+
+---
+
+## Deadlock Trigger Time
+
+In this simulator, deadlock is detected at:
+
+- **t = 11**
+
+This is the first timestep where:
+
+- after injection, all cycle buffers are at or above the PFC threshold  
+- every forwarding decision is blocked  
+- no buffer can drain  
+- occupancy remains stuck forever  
+
+So the trigger is that all cycle buffers cross threshold together, and the cycle stops draining permanently.
+
+---
+
+# Why L0 and L2 Look More Congested Than S0 and S1
+
+A common observation is that **L0 and L2 buffers appear more congested** than S0 and S1.
+
+This happens because:
+
+- L0 and L2 sit on the cycle entry points and are fed by upstream injections (from F1, F2, F3). When the cycle gets close to full, PFC blocks forwarding into the next switch, so L0 and L2 keep accumulating.  
+- S0 and S1 can still drain to their next hops until the downstream buffers hit the threshold, so their occupancy can stabilize lower than L0 and L2 during the buildup.  
+- once the cycle is saturated, all four cycle buffers stop draining, but by then L0 and L2 already accumulated more because they were the injection sources.  
+
+---
+
+# What’s Different Between the Scenarios
+
+### Scenario 1
+- only two flows (F1, F2)  
+- lower injection rates and fewer total packets  
+- buffers rise but stay below a level that blocks the whole cycle  
+
+### Scenario 2
+- adds F3 and increases total injection load  
+- the extra load pushes the cycle buffers past the PFC threshold and eventually to full  
+
+---
+
+# Key Clarifications About PFC and Deadlock Behavior
+
+## Clarification 1: PFC only stops new packets from S1 → L0
+
+PFC does not drain L0’s buffer by itself.  
+If L0 cannot forward to S0 because S0 is blocked, L0’s buffer can stay full or increase if there is local injection.
+
+---
+
+## Clarification 2: In a cycle, multiple buffers can become blocked simultaneously
+
+Even after L0 pauses S1, L0 still cannot drain because the next hop may be blocked by another pause.
+
+That is the deadlock pattern.
+
+So:
+
+- yes, L0 can pause S1 over the link  
+- but that alone does not guarantee L0’s buffer drains  
+- in a cyclic dependency, everyone can end up paused at once  
+
+---
+
+# Important Note About the Simplified Buffer Model
+
+This behavior is a side effect of the **one buffer per switch simplification**.
+
+In this model:
+
+- each switch is treated as one shared buffer for all directions  
+- we do not explicitly model host egress draining, only hop-to-hop movement inside the cycle  
+- even if Flow2 should ultimately drain to hosts, L0 can remain full because the model does not include a host-facing sink  
+
+In a more accurate model:
+
+- ingress and egress buffers are separate  
+- host-facing egress continues to drain  
+- L0 could empty even if its upstream is paused  
+
+---
+
+# Why Scenario 1 Never Deadlocks But Scenario 2 Does
+
+Scenario 1 never crosses the all-buffers-over-threshold tipping point:
+
+- F1 and F2 inject at 1 packet per step each  
+- the cycle never reaches a state where all buffers are above threshold simultaneously  
+- at least one downstream buffer stays below threshold  
+- draining continues and the cycle does not freeze  
+
+Scenario 2 crosses the tipping point:
+
+- F1 and F2 inject as before  
+- F3 adds extra load into the cycle  
+- every cycle buffer crosses the threshold together  
+- forwarding becomes blocked everywhere  
+- the system locks into permanent pause  
+
+---
+
+# Example Plots for Each Scenario
+
+## Scenario 1
+
+### Buffer Occupancy
+![Scenario 1 Buffer Occupancy](pfc_scenario_1_occupancy.png)
+
+### Pause Timeline
+![Scenario 1 Pause Timeline](pfc_scenario_1_link_pause.png)
+
+---
+
+## Scenario 2
+
+### Buffer Occupancy
+![Scenario 2 Buffer Occupancy](pfc_scenario_2_occupancy.png)
+
+### Pause Timeline
+![Scenario 2 Pause Timeline](pfc_scenario_2_link_pause.png)
+
+---
+
+# Summary of Results
+
+| Scenario | Flows | Outcome |
+|---------|------|---------|
+| Scenario 1 | F1, F2 | No deadlock (buffers stabilize) |
+| Scenario 2 | F1, F2, F3 | Deadlock at t = 11 |
+
+---
+
+# Future Improvements
+
+Possible extensions to make the simulator more realistic:
+
+- separate ingress and egress queues  
+- per-port buffering instead of one shared buffer  
+- explicit host drain behavior  
+- multi-priority PFC class modeling  
+- more accurate deadlock detection (wait-for graph analysis)  
+
+---
+
+# License
+
+This project is released under the MIT License.  
+You may freely use, modify, and distribute it.
