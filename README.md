@@ -31,49 +31,11 @@ python pfc_cyclic_dependency_sim.py
 ```
 
 
-## What This Code Does
+## Describtion
 
-This simulator models:
-
-- a set of switches and links  
-- traffic flows that inject packets into the network  
-- buffers with limited capacity  
-- a PFC threshold that triggers pause behavior  
-- cyclic dependencies between buffers  
-
-The simulator tracks:
-
-- buffer occupancy over time  
-- when each link becomes paused  
-- whether the system reaches deadlock  
-
-
-
-## Repository Files
-
-| File | Description |
-|------|-------------|
-| `pfc_cyclic_dependency_sim.py` | Main simulation script |
-| `pfc_scenario_1_occupancy.png` | Buffer occupancy plot (Scenario 1) |
-| `pfc_scenario_1_link_pause.png` | Link pause timeline plot (Scenario 1) |
-| `pfc_scenario_1.png` | Topology visualization (Scenario 1) |
-| `pfc_scenario_2_occupancy.png` | Buffer occupancy plot (Scenario 2) |
-| `pfc_scenario_2_link_pause.png` | Link pause timeline plot (Scenario 2) |
-| `pfc_scenario_2.png` | Topology visualization (Scenario 2) |
-
----
+This simulator models a network composed of multiple switches and links, where traffic flows inject packets into the system and are stored in buffers with limited capacity. It incorporates a Priority Flow Control (PFC) threshold mechanism that triggers pause behavior whenever downstream buffers become congested, allowing the simulation of cyclic buffer dependencies that may form within the network. During execution, the simulator continuously tracks buffer occupancy over time, records when each link becomes paused due to downstream congestion, and determines whether the network reaches a deadlock state caused by circular waiting conditions.
 
 ## Dependencies
-
-### Python Version
-
-This code was tested on:
-
-- Python 3.8+
-- Python 3.10+
-- Python 3.11+
-
-### Required Python Packages
 
 Install the required packages using:
 
@@ -81,42 +43,12 @@ Install the required packages using:
 pip install numpy matplotlib networkx
 ```
 
-These packages are used for:
-
-- `numpy` for simulation updates and state tracking  
-- `matplotlib` for generating plots  
-- `networkx` for visualizing the buffer dependency graph  
-
-
-
 ## Output Generated
 
-When you run the script, it generates:
-
-### 1. Buffer Occupancy Plot
-
-Shows the number of buffered packets per switch buffer over time.
-
-Includes:
-
-- buffer capacity line  
-- PFC threshold line  
-- buffer buildup behavior  
-
-### 2. Link Pause Timeline Plot
-
-Shows when each link becomes paused.
-
-Each dot means:
-
-- at that timestep, the downstream buffer is above threshold  
-- therefore PFC pause is active on that link  
-
-### 3. Dependency Graph Visualization
-
-Shows the cyclic dependency between buffers and the flows contributing to it.
-
----
+When you run the script, it generates a directory named /plots which include for each scenario:
+1) Buffer Occupancy Plot- Shows the number of buffered packets per switch buffer over time.
+2) Link Pause Timeline Plot- Shows when each link becomes paused. Where each dot means at that timestep, the downstream buffer is above threshold therefore PFC pause is active on that link.  
+3) Dependency Graph Visualization- Shows the cyclic dependency between buffers and the flows contributing to it.
 
 # Network Model
 
