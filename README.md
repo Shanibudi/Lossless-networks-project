@@ -1,29 +1,34 @@
 # PFC Cyclic Buffer Dependency Simulator
 
-This repository contains a Python-based simulation of **Priority Flow Control (PFC)** behavior in a network with **cyclic buffer dependencies**. The simulator demonstrates how cyclic dependencies can lead to **buffer buildup**, **link pauses**, and eventually **deadlock** under higher traffic injection.
+This repository contains a Python-based simulation of **Priority Flow Control (PFC)** behavior in a network with **cyclic buffer dependencies**. The simulator demonstrates how cyclic dependencies can lead to buffer buildup, link pauses, and eventually deadlock under higher traffic injection.
 
-The project includes **two scenarios**:
+The project includes two scenarios:
 
 - **Scenario 1:** Cyclic dependency without deadlock  
 - **Scenario 2:** Same dependency with an extra flow causing deadlock  
 
-This simulator is intentionally simplified (one buffer per switch) in order to highlight the fundamental deadlock mechanism.
-
-
+This simulator is intentionally simplified (one buffer per switch instead of ingress and egress buffers) in order to highlight the fundamental deadlock mechanism.
 
 ## Overview
 
 Priority Flow Control (PFC) is a mechanism used in lossless Ethernet networks (for example RoCE) to prevent packet loss due to buffer overflow. When a switch buffer reaches a configured threshold, it sends a pause signal upstream to stop incoming traffic.
 
-In networks with **cyclic dependencies**, PFC can cause a pathological condition where:
+In networks with cyclic dependencies, PFC can cause a pathological condition where each buffer is full, every upstream link is paused, no buffer can drain and the entire system becomes frozen. This forms a deadlock.
 
-- each buffer is full  
-- every upstream link is paused  
-- no buffer can drain  
-- the entire system becomes frozen  
+## How to Run
 
-This is a **deadlock**.
+Clone the repository:
 
+```bash
+git clone https://github.com/<your-username>/pfc-cyclic-deadlock-simulator.git
+cd pfc-cyclic-deadlock-simulator
+```
+
+Run the simulation script:
+
+```bash
+python pfc_cyclic_dependency_sim.py
+```
 
 
 ## What This Code Does
@@ -82,24 +87,7 @@ These packages are used for:
 - `matplotlib` for generating plots  
 - `networkx` for visualizing the buffer dependency graph  
 
----
 
-## How to Run
-
-Clone the repository:
-
-```bash
-git clone https://github.com/<your-username>/pfc-cyclic-deadlock-simulator.git
-cd pfc-cyclic-deadlock-simulator
-```
-
-Run the simulation script:
-
-```bash
-python pfc_cyclic_dependency_sim.py
-```
-
----
 
 ## Output Generated
 
