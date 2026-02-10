@@ -12,7 +12,7 @@ except ImportError as exc:
         "Missing dependency. Install: pip install matplotlib networkx numpy"
     ) from exc
 
-BASE_DIR = "/gpfs0/bgu-benshimo/users/shanibud/fattree_lossless_networks"
+BASE_DIR = "/fattree_lossless_networks"
 DEFAULT_PLOTS_DIR = os.path.join(BASE_DIR, "plots")
 DEFAULT_REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 
