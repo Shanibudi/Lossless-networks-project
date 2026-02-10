@@ -15,14 +15,15 @@ Priority Flow Control (PFC) is a mechanism used in lossless Ethernet networks (f
 
 In networks with cyclic dependencies, PFC can cause a pathological condition where each buffer is full, every upstream link is paused, no buffer can drain and the entire system becomes frozen. This forms a deadlock.
 
-## How to Run
+## Dependencies
 
-Clone the repository:
+Install the required packages using:
 
 ```bash
-git clone https://github.com/<your-username>/pfc-cyclic-deadlock-simulator.git
-cd pfc-cyclic-deadlock-simulator
+pip install numpy matplotlib networkx
 ```
+
+## How to Run
 
 Run the simulation script:
 
@@ -35,13 +36,6 @@ python pfc_cyclic_dependency_sim.py
 
 This simulator models a network composed of multiple switches and links, where traffic flows inject packets into the system and are stored in buffers with limited capacity. It incorporates a Priority Flow Control (PFC) threshold mechanism that triggers pause behavior whenever downstream buffers become congested, allowing the simulation of cyclic buffer dependencies that may form within the network. During execution, the simulator continuously tracks buffer occupancy over time, records when each link becomes paused due to downstream congestion, and determines whether the network reaches a deadlock state caused by circular waiting conditions.
 
-## Dependencies
-
-Install the required packages using:
-
-```bash
-pip install numpy matplotlib networkx
-```
 
 ## Output Generated
 
@@ -334,9 +328,4 @@ Possible extensions to make the simulator more realistic:
 - multi-priority PFC class modeling  
 - more accurate deadlock detection (wait-for graph analysis)  
 
----
 
-# License
-
-This project is released under the MIT License.  
-You may freely use, modify, and distribute it.
