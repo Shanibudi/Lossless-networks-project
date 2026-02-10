@@ -2,12 +2,14 @@
 
 This repository contains a Python-based simulation of **Priority Flow Control (PFC)** behavior in a network with **cyclic buffer dependencies**. The simulator demonstrates how cyclic dependencies can lead to buffer buildup, link pauses, and eventually deadlock under higher traffic injection.
 
+This simulator models a network composed of multiple switches and links, where traffic flows inject packets into the system and are stored in buffers with limited capacity. It incorporates a Priority Flow Control (PFC) threshold mechanism that triggers pause behavior whenever downstream buffers become congested, allowing the simulation of cyclic buffer dependencies that may form within the network. During execution, the simulator continuously tracks buffer occupancy over time, records when each link becomes paused due to downstream congestion, and determines whether the network reaches a deadlock state caused by circular waiting conditions.
+
 The project includes two scenarios:
 
-- **Scenario 1:** Cyclic dependency without deadlock  
-- **Scenario 2:** Same dependency with an extra flow causing deadlock  
+**Scenario 1:** Cyclic dependency without deadlock  
+**Scenario 2:** Same dependency with an extra flow causing deadlock  
 
-This simulator is intentionally simplified (one buffer per switch instead of ingress and egress buffers) in order to highlight the fundamental deadlock mechanism.
+The simulator assumes that each switch has a single shared buffer, which is a simplified abstraction compared to real hardware. In real systems, ingress and egress queues are separated and host-facing egress and priority-based buffering can continue draining independently, but this simplification is intentional to clearly isolate the deadlock mechanism.
 
 ## Overview
 
@@ -23,72 +25,48 @@ Install the required packages using:
 pip install numpy matplotlib networkx
 ```
 
-## How to Run
+## How to Run the simulation script
 
-Run the simulation script:
+You can run both scenarios:
 
 ```bash
-python pfc_cyclic_dependency_sim.py
+python pfc_cyclic_dependency_sim.py --scenario both
+```
+You can also run a single scenario:
+
+```bash
+python pfc_cyclic_dependency_sim.py --scenario 1
+python pfc_cyclic_dependency_sim.py --scenario 2
 ```
 
+Optional flags:
 
-## Describtion
-
-This simulator models a network composed of multiple switches and links, where traffic flows inject packets into the system and are stored in buffers with limited capacity. It incorporates a Priority Flow Control (PFC) threshold mechanism that triggers pause behavior whenever downstream buffers become congested, allowing the simulation of cyclic buffer dependencies that may form within the network. During execution, the simulator continuously tracks buffer occupancy over time, records when each link becomes paused due to downstream congestion, and determines whether the network reaches a deadlock state caused by circular waiting conditions.
+- `--steps N`  (default: 30) — number of simulation steps.
+- `--out_dir PATH`  (default: `.../fattree_lossless_networks/plots`)
+- `--reports_dir PATH` (default: `.../fattree_lossless_networks/reports`)
 
 
 ## Output Generated
 
-When you run the script, it generates a directory named /plots which include for each scenario:
-1) Buffer Occupancy Plot- Shows the number of buffered packets per switch buffer over time.
-2) Link Pause Timeline Plot- Shows when each link becomes paused. Where each dot means at that timestep, the downstream buffer is above threshold therefore PFC pause is active on that link.  
-3) Dependency Graph Visualization- Shows the cyclic dependency between buffers and the flows contributing to it.
+When you run the script, it generates a directory named `/plots` which include for each scenario:
+1) Buffer Occupancy Plot- shows the number of buffered packets per switch buffer over time.
+2) Link Pause Timeline Plot- shows when each link becomes paused. Where each dot means at that timestep, the downstream buffer is above threshold therefore PFC pause is active on that link.  
+3) Dependency Graph Visualization- shows the cyclic dependency between buffers and the flows contributing to it.
 
-# Network Model
-
-## Buffers
-
-The simulator models each switch as having a **single shared buffer**.
-
-This is a simplification. In real hardware:
-
-- ingress and egress queues are separate  
-- host-facing egress may drain independently  
-- virtual lanes and priority queues exist  
-
-This simplification is intentional and helps isolate the deadlock mechanism.
-
----
 
 ## PFC Rule Used
 
-A link is considered **paused** when:
+A link is considered paused when downstream_buffer >= PFC threshold. So if a packet would be forwarded into a buffer that is already above threshold, forwarding is blocked.
 
-**downstream_buffer >= PFC threshold**
-
-Meaning:  
-If a packet would be forwarded into a buffer that is already above threshold, forwarding is blocked.
-
----
 
 # Scenario 1: Cyclic Dependency Without Deadlock
 
-## Description
+Scenario 1 models a cyclic dependency involving two flows which forms a dependency cycle:
 
-Scenario 1 models a cyclic dependency involving **two flows**:
-
-- **F1:** `L0 → S0 → L2`  
-- **F2:** `L2 → S1 → L0`  
-
-This forms the dependency cycle:
-
-`L0 → S0 → L2 → S1 → L0`
+<img width="2072" height="1634" alt="image" src="https://github.com/user-attachments/assets/7bd1d886-7f39-472b-862a-0f7ec53aaf7e" />
 
 However, the system does **not deadlock** because the injection rate is low enough that at least one buffer always remains drainable.
 
----
-
-## Scenario 1 Outputs
 
 ### Topology View
 
@@ -323,9 +301,6 @@ Scenario 2 crosses the tipping point:
 Possible extensions to make the simulator more realistic:
 
 - separate ingress and egress queues  
-- per-port buffering instead of one shared buffer  
-- explicit host drain behavior  
-- multi-priority PFC class modeling  
-- more accurate deadlock detection (wait-for graph analysis)  
+- multi-priority PFC class modeling   
 
 
