@@ -11,7 +11,7 @@ The project includes two scenarios:
 
 The simulator assumes that each switch has a single shared buffer, which is a simplified abstraction compared to real hardware. In real systems, ingress and egress queues are separated and host-facing egress and priority-based buffering can continue draining independently, but this simplification is intentional to clearly isolate the deadlock mechanism.
 
-## Overview
+## Background
 
 Priority Flow Control (PFC) is a mechanism used in lossless Ethernet networks (for example RoCE) to prevent packet loss due to buffer overflow. When a switch buffer reaches a configured threshold, it sends a pause signal upstream to stop incoming traffic.
 
