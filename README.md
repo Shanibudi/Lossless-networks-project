@@ -68,13 +68,12 @@ Scenario 1 models a cyclic dependency involving two flows which forms a dependen
 However, the system does **not deadlock** because the injection rate is low enough that at least one buffer always remains drainable.
 
 
-
 ### Buffer Occupancy Plot
 
 The plot below shows:
 
-- L2 reaches the threshold early (around 7 packets)  
-- S1 grows later and stabilizes  
+- L0 and L2 reach the threshold early
+- S0 and S1 grow later and stabilizes  
 - the buffers stabilize below capacity  
 - the cycle never becomes fully saturated
 
@@ -83,27 +82,19 @@ The plot below shows:
 
 ### Link Pause Timeline
 
-![Scenario 1 Pause Timeline](pfc_scenario_1_link_pause.png)
-
-What we observe:
+The plot below shows:
 
 - pauses occur at certain steps  
 - pauses do not persist across all links indefinitely  
 - the system continues draining intermittently  
 
----
+<img width="800" height="600" alt="Scenario 1 Topology" src="plots/pfc_scenario_1_link_pause.png">
 
-## Why Scenario 1 Has No Deadlock
 
-Scenario 1 avoids deadlock because:
-
-- at least one buffer in the cycle can still drain at each step  
-- PFC never blocks all cycle links simultaneously  
-- the system continues moving, even if partially paused  
+Scenario 1 avoids deadlock because at least one buffer in the cycle can still drain at each step, PFC never blocks all cycle links simultaneously so the system continues moving, even if partially paused. 
 
 The cycle never reaches the tipping point where all cycle buffers are above the threshold at the same time.
 
----
 
 # Scenario 2: Same Dependency With Extra Flow Causing Deadlock
 
@@ -111,43 +102,33 @@ The cycle never reaches the tipping point where all cycle buffers are above the 
 
 Scenario 2 uses the same cyclic dependency as Scenario 1, but adds an extra flow:
 
-- **F1:** `L0 → S0 → L2`  
-- **F2:** `L2 → S1 → L0`  
-- **F3:** `L1 → S0 → L2`  
+<img width="800" height="600" alt="Scenario 1 Topology" src="plots/pfc_scenario_2.png">
 
-This extra injection increases load into the cycle.
+This extra injection increases load into the cycle what forms a **deadlock**.
 
----
-
-## Scenario 2 Outputs
-
-### Topology View
-
-![Scenario 2 Topology](pfc_scenario_2.png)
 
 ### Buffer Occupancy Plot
 
-![Scenario 2 Buffer Occupancy](pfc_scenario_2_occupancy.png)
+The plot below shows:
 
-What we observe:
-
-- buffers grow much faster than Scenario 1  
-- L0 reaches full capacity (10 packets)  
-- S0 and S1 stabilize at higher levels  
+- L0 reaches full capacity  
+- all buffers occupancy pass PFC threshold
 - the cycle becomes saturated  
 - the system reaches a frozen state  
 
+<img width="800" height="600" alt="Scenario 1 Topology" src="plots/plots/pfc_scenario_2_occupancy.png">
+
+
 ### Link Pause Timeline
 
-![Scenario 2 Pause Timeline](pfc_scenario_2_link_pause.png)
-
-What we observe:
+The plot below shows:
 
 - after a certain time, all links remain paused  
 - pauses become persistent  
 - forwarding stops permanently  
 
----
+<img width="800" height="600" alt="Scenario 1 Topology" src="plots/plots/pfc_scenario_2_link_pause.png.png">
+
 
 ## Why Scenario 2 Deadlocks
 
