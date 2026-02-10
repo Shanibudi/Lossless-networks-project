@@ -25,7 +25,7 @@ Install the required packages using:
 pip install numpy matplotlib networkx
 ```
 
-## How to Run the simulation script
+## How to run the simulation script
 
 You can run:
 
@@ -41,13 +41,14 @@ Optional flags:
 - `--reports_dir PATH` (default: `.../fattree_lossless_networks/reports`)
 
 
-## Output Generated
+## Generated Output 
 
 When you run the script, it generates a directory named `/plots` which include for each scenario:
 1) Buffer Occupancy Plot- shows the number of buffered packets per switch buffer over time.
 2) Link Pause Timeline Plot- shows when each link becomes paused. Where each dot means at that timestep, the downstream buffer is above threshold therefore PFC pause is active on that link.  
 3) Dependency Graph Visualization- shows the cyclic dependency between buffers and the flows contributing to it.
 
+Additionally, when you run the script, it generates a `/reports` directory that summarizes the execution of each scenario.
 
 ## PFC Rule Used
 
