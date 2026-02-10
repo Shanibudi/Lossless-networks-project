@@ -19,6 +19,14 @@ DEFAULT_REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 
 @dataclass
 class Flow:
+    """Represents a traffic flow in the network.
+
+    Attributes:
+        name: Flow identifier (e.g., F1, F2).
+        path: Ordered list of nodes representing the flow path.
+        color: Plotting color used to visualize the flow.
+        width: Line width used for plotting.
+    """
     name: str
     path: List[str]
     color: str
@@ -27,6 +35,22 @@ class Flow:
 
 @dataclass
 class Scenario:
+    """Defines a simulation scenario.
+
+    A scenario includes a set of flows, injection rates, buffer parameters,
+    and the cycle links that form the cyclic dependency.
+
+    Attributes:
+        title: Human-readable scenario title.
+        flows: List of traffic flows active in the scenario.
+        cells_per_flow: Number of buffer cells occupied per packet per flow.
+        buffer_capacity: Maximum buffer size for each switch.
+        pfc_threshold: Threshold at which PFC pause is triggered.
+        injection_rate: Packets injected per step for each flow.
+        total_packets: Total packets injected for each flow.
+        cycle_links: Links forming the cyclic dependency.
+        extra_links: Additional links used for visualization.
+    """
     title: str
     flows: List[Flow]
     cells_per_flow: Dict[str, int]
@@ -40,6 +64,16 @@ class Scenario:
 
 @dataclass
 class SimulationResult:
+    """Stores the output of a simulation run.
+
+    Attributes:
+        occupancy_history: Buffer occupancy time series per switch.
+        packets_passed: Total forwarded packets per switch.
+        deadlock_step: The time step at which deadlock was detected (if any).
+        initial_occupancy: Initial buffer occupancy before simulation starts.
+        final_occupancy: Final buffer occupancy after simulation ends.
+        cycle_buffers: List of buffers that participate in the cyclic dependency.
+    """
     occupancy_history: Dict[str, List[int]]
     packets_passed: Dict[str, int]
     deadlock_step: Optional[int]
@@ -49,6 +83,13 @@ class SimulationResult:
 
 
 def build_leaf_spine_topology() -> Tuple[nx.Graph, List[str], List[str]]:
+    """Build a leaf-spine topology graph.
+
+    Returns:
+        G: Undirected NetworkX graph containing spines and leaves.
+        spines: List of spine node names.
+        leaves: List of leaf node names.
+    """
     spines = ["S0", "S1"]
     leaves = ["L0", "L1", "L2", "L3"]
 
@@ -66,6 +107,17 @@ def build_leaf_spine_topology() -> Tuple[nx.Graph, List[str], List[str]]:
 
 
 def fixed_positions(spines: List[str], leaves: List[str]) -> Dict[str, Tuple[float, float]]:
+    """Generate fixed node positions for plotting.
+
+    This ensures the topology is always drawn in a consistent layout.
+
+    Args:
+        spines: List of spine node names.
+        leaves: List of leaf node names.
+
+    Returns:
+        Dictionary mapping node name -> (x, y) coordinate.
+    """
     pos = {}
     spine_xs = np.linspace(0.3, 0.7, len(spines))
     leaf_xs = np.linspace(0.1, 0.9, len(leaves))
@@ -79,14 +131,27 @@ def fixed_positions(spines: List[str], leaves: List[str]) -> Dict[str, Tuple[flo
 
 
 def buffer_id(u: str, v: str) -> str:
+    """Create a unique identifier for a directed link buffer."""
     return f"{u}->{v}"
 
 
 def switch_buffer_id(node: str) -> str:
+    """Create a unique identifier for a switch buffer."""
     return f"{node}"
 
 
 def compute_buffer_occupancy(flows: List[Flow], cells_per_flow: Dict[str, int]) -> Dict[str, int]:
+    """Compute initial buffer occupancy based on flows and cell allocation.
+
+    Each flow contributes buffer occupancy at every hop along its path.
+
+    Args:
+        flows: List of flows in the scenario.
+        cells_per_flow: Mapping from flow name to occupied cells per packet.
+
+    Returns:
+        Dictionary mapping switch buffer -> initial occupancy value.
+    """
     occupancy: Dict[str, int] = {}
     for flow in flows:
         cells = cells_per_flow.get(flow.name, 1)
@@ -97,6 +162,7 @@ def compute_buffer_occupancy(flows: List[Flow], cells_per_flow: Dict[str, int]) 
 
 
 def ordered_unique_links(flows: List[Flow]) -> List[str]:
+    """Extract all unique directed links from flows while preserving order."""
     seen = set()
     links: List[str] = []
     for flow in flows:
@@ -109,6 +175,7 @@ def ordered_unique_links(flows: List[Flow]) -> List[str]:
 
 
 def ordered_unique_switches(flows: List[Flow]) -> List[str]:
+    """Extract all unique switch nodes from flows while preserving order."""
     seen = set()
     switches: List[str] = []
     for flow in flows:
@@ -120,6 +187,16 @@ def ordered_unique_switches(flows: List[Flow]) -> List[str]:
 
 
 def build_dependency_graph(cycle_links: List[Tuple[str, str]]) -> nx.DiGraph:
+    """Build a directed dependency graph representing cyclic buffer dependencies.
+
+    Each node represents a switch buffer, and edges represent dependency between buffers.
+
+    Args:
+        cycle_links: List of directed links forming the cycle.
+
+    Returns:
+        Directed graph representing the dependency cycle.
+    """
     dg = nx.DiGraph()
     cycle_ids = [switch_buffer_id(u) for u, _ in cycle_links]
     for i in range(len(cycle_ids)):
@@ -128,6 +205,17 @@ def build_dependency_graph(cycle_links: List[Tuple[str, str]]) -> nx.DiGraph:
 
 
 def detect_deadlock(dep_graph: nx.DiGraph, full_buffers: Dict[str, bool]) -> Tuple[bool, List[str]]:
+    """Detect whether a deadlock cycle exists.
+
+    Deadlock is declared if there exists a dependency cycle where all buffers are full.
+
+    Args:
+        dep_graph: Directed dependency graph.
+        full_buffers: Mapping of buffer -> whether it is full.
+
+    Returns:
+        Tuple of (deadlock_detected, cycle_nodes).
+    """
     for cycle in nx.simple_cycles(dep_graph):
         if all(full_buffers.get(buf, False) for buf in cycle):
             return True, cycle
@@ -135,6 +223,7 @@ def detect_deadlock(dep_graph: nx.DiGraph, full_buffers: Dict[str, bool]) -> Tup
 
 
 def draw_flow(ax, pos, flow: Flow) -> None:
+    """Draw a flow path as arrows on the topology plot."""
     for u, v in zip(flow.path[:-1], flow.path[1:]):
         ax.annotate(
             "",
@@ -152,6 +241,7 @@ def draw_flow(ax, pos, flow: Flow) -> None:
 
 
 def draw_cycle(ax, pos, cycle_links: List[Tuple[str, str]]) -> None:
+    """Draw the cyclic dependency links using dashed arrows."""
     for u, v in cycle_links:
         ax.annotate(
             "",
@@ -175,6 +265,7 @@ def draw_cycle_labels(
     cycle_links: List[Tuple[str, str]],
     extra_links: Optional[List[Tuple[str, str]]] = None,
 ) -> None:
+    """Label the cycle links as Link1, Link2, etc. for pause timeline visualization."""
     edge_labels = {}
     for idx, (u, v) in enumerate(cycle_links, start=1):
         edge_labels[(u, v)] = f"Link{idx}"
@@ -193,6 +284,7 @@ def draw_cycle_labels(
 
 
 def scenario_text(flows: List[Flow]) -> str:
+    """Generate a formatted text block describing flows."""
     lines = ["Flows:"]
     for flow in flows:
         lines.append(f"{flow.name}: " + " -> ".join(flow.path))
@@ -200,6 +292,7 @@ def scenario_text(flows: List[Flow]) -> str:
 
 
 def cycle_text(cycle_links: List[Tuple[str, str]]) -> str:
+    """Generate a formatted text block describing the cyclic dependency."""
     nodes = [cycle_links[0][0]] + [v for _, v in cycle_links]
     return "Buffer dependency cycle:\n" + " -> ".join(nodes)
 
@@ -212,6 +305,22 @@ def render_scenario(
     deadlock: bool,
     deadlock_step: Optional[int],
 ) -> None:
+    """Render the scenario topology visualization.
+
+    This figure includes:
+    - network topology
+    - flows and cycle arrows
+    - link labels
+    - system deadlock status
+
+    Args:
+        G: Topology graph.
+        pos: Node positions for plotting.
+        scenario: Scenario definition.
+        out_path: Path to save output image.
+        deadlock: Boolean deadlock indicator.
+        deadlock_step: Time step where deadlock occurred.
+    """
     occupancy = compute_buffer_occupancy(scenario.flows, scenario.cells_per_flow)
     full_buffers = {
         switch_buffer_id(u): occupancy.get(switch_buffer_id(u), 0) >= scenario.pfc_threshold
@@ -293,6 +402,21 @@ def render_scenario(
 
 
 def simulate_buffer_dynamics(scenario: Scenario, steps: int) -> SimulationResult:
+    """Run the main buffer occupancy simulation.
+
+    This function simulates:
+    - packet injection
+    - hop-by-hop forwarding decisions
+    - PFC blocking when downstream buffers exceed threshold
+    - deadlock detection based on full cyclic buffers
+
+    Args:
+        scenario: Scenario configuration.
+        steps: Number of simulation time steps.
+
+    Returns:
+        SimulationResult containing occupancy history and deadlock information.
+    """
     switches = ordered_unique_switches(scenario.flows)
     occupancy = compute_buffer_occupancy(scenario.flows, scenario.cells_per_flow)
     for sw in switches:
@@ -381,6 +505,7 @@ def plot_buffer_occupancy(
     sim_result: SimulationResult,
     out_path: str,
 ) -> None:
+    """Generate a time-series plot showing buffer occupancy over time."""
     times = list(range(len(next(iter(sim_result.occupancy_history.values())))))
     markers = ["o", "s", "^", "D", "v", "P", "X", "*", "h", "<", ">"]
 
@@ -433,6 +558,7 @@ def plot_pfc_pauses(
     sim_result: SimulationResult,
     out_path: str,
 ) -> None:
+    """Generate a plot showing when each cycle buffer triggers a PFC pause."""
     times = list(range(len(next(iter(sim_result.occupancy_history.values())))))
     switches = list(sim_result.cycle_buffers)
 
@@ -459,6 +585,10 @@ def plot_link_pauses(
     sim_result: SimulationResult,
     out_path: str,
 ) -> None:
+    """Generate a plot showing when each directed link is paused.
+
+    A link is considered paused if its downstream buffer is above the PFC threshold.
+    """
     times = list(range(len(next(iter(sim_result.occupancy_history.values())))))
     links = [f"Link{idx}" for idx in range(1, len(scenario.cycle_links) + 1)]
     downstream_map = {
@@ -495,6 +625,14 @@ def write_report(
     sim_result: SimulationResult,
     out_path: str,
 ) -> None:
+    """Write a summary report of the simulation to a text file.
+
+    The report includes:
+    - scenario parameters
+    - deadlock status and step
+    - initial and final occupancy
+    - number of packets passed through each switch
+    """
     switches = ordered_unique_switches(scenario.flows)
     cycle_set = set(sim_result.cycle_buffers)
     with open(out_path, "w", encoding="utf-8") as handle:
@@ -528,6 +666,11 @@ def write_report(
 
 
 def build_scenarios() -> List[Scenario]:
+    """Build the two simulation scenarios.
+
+    Returns:
+        List containing Scenario 1 and Scenario 2 configurations.
+    """
     cycle_links = [("L0", "S0"), ("S0", "L2"), ("L2", "S1"), ("S1", "L0")]
 
     scenario1 = Scenario(
@@ -565,6 +708,11 @@ def build_scenarios() -> List[Scenario]:
 
 
 def main() -> None:
+    """Entry point of the simulator.
+
+    Parses command line arguments, selects the requested scenario,
+    runs the simulation, generates plots, and writes reports.
+    """
     parser = argparse.ArgumentParser(
         description="Simulate cyclic buffer dependency with PFC in a leaf-spine fabric."
     )
