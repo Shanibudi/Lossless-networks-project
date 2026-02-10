@@ -1,8 +1,8 @@
 # PFC Cyclic Buffer Dependency Simulator
 
-This repository contains a Python-based simulation of **Priority Flow Control (PFC)** behavior in a network with **cyclic buffer dependencies**. The simulator demonstrates how cyclic dependencies can lead to buffer buildup, link pauses, and eventually deadlock under higher traffic injection.
+This repository contains a Python-based simulation of **Priority Flow Control (PFC)** behavior in a network with **cyclic buffer dependencies (CBD)**. The simulator demonstrates how cyclic dependencies can lead to buffer buildup, link pauses, and eventually deadlock under higher traffic injection.
 
-This simulator models a network composed of multiple switches and links, where traffic flows inject packets into the system and are stored in buffers with limited capacity. It incorporates a Priority Flow Control (PFC) threshold mechanism that triggers pause behavior whenever downstream buffers become congested, allowing the simulation of cyclic buffer dependencies that may form within the network. During execution, the simulator continuously tracks buffer occupancy over time, records when each link becomes paused due to downstream congestion, and determines whether the network reaches a deadlock state caused by circular waiting conditions.
+This simulator models a network composed of multiple switches and links, where traffic flows inject packets into the system and are stored in buffers with limited capacity. It incorporates a PFC threshold mechanism that triggers pause behavior whenever downstream buffers become congested, allowing the simulation of cyclic buffer dependencies that may form within the network. During execution, the simulator continuously tracks buffer occupancy over time, records when each link becomes paused due to downstream congestion, and determines whether the network reaches a deadlock state caused by circular waiting conditions.
 
 The project includes two scenarios:
 
@@ -13,7 +13,7 @@ The simulator assumes that each switch has a single shared buffer, which is a si
 
 ## Background
 
-Priority Flow Control (PFC) is a mechanism used in lossless Ethernet networks (for example RoCE) to prevent packet loss due to buffer overflow. When a switch buffer reaches a configured threshold, it sends a pause signal upstream to stop incoming traffic.
+PFC is a mechanism used in lossless Ethernet networks (for example RoCE) to prevent packet loss due to buffer overflow. When a switch buffer reaches a configured threshold, it sends a pause signal upstream to stop incoming traffic.
 
 In networks with cyclic dependencies, PFC can cause a pathological condition where each buffer is full, every upstream link is paused, no buffer can drain and the entire system becomes frozen. This forms a deadlock.
 
@@ -68,20 +68,18 @@ Scenario 1 models a cyclic dependency involving two flows which forms a dependen
 However, the system does **not deadlock** because the injection rate is low enough that at least one buffer always remains drainable.
 
 
-### Topology View
-
-![Scenario 1 Topology](pfc_scenario_1.png)
 
 ### Buffer Occupancy Plot
 
-![Scenario 1 Buffer Occupancy](pfc_scenario_1_occupancy.png)
-
-What we observe:
+The plot below shows:
 
 - L2 reaches the threshold early (around 7 packets)  
 - S1 grows later and stabilizes  
 - the buffers stabilize below capacity  
-- the cycle never becomes fully saturated  
+- the cycle never becomes fully saturated
+
+<img width="800" height="600" alt="Scenario 1 Topology" src="plots/pfc_scenario_1_occupancy.png">
+
 
 ### Link Pause Timeline
 
