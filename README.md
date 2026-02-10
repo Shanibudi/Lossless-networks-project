@@ -35,7 +35,7 @@ python pfc_cyclic_dependency_sim.py
 
 Optional flags:
 
-- --scenario {1,2,both} - select which scenario to run (default: both)
+- `--scenario {1,2,both}` - select which scenario to run (default: both)
 - `--steps N`  (default: 30) — number of simulation steps.
 - `--out_dir PATH`  (default: `.../fattree_lossless_networks/plots`)
 - `--reports_dir PATH` (default: `.../fattree_lossless_networks/reports`)
