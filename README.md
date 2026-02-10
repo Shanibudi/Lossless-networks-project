@@ -37,6 +37,6 @@ Optional flags:
 ## Output 
 Running the script generates:
 
-	•	`/plots` directory containing topology and simulation plots for each scenario
+- `/plots` directory containing topology and simulation plots for each scenario
 	
-	•	`/reports` directory containing text summaries of each scenario execution
+- `/reports` directory containing text summaries of each scenario execution
