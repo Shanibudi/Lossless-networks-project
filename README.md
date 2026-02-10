@@ -27,20 +27,14 @@ pip install numpy matplotlib networkx
 
 ## How to Run the simulation script
 
-You can run both scenarios:
+You can run:
 
 ```bash
-python pfc_cyclic_dependency_sim.py --scenario both
-```
-You can also run a single scenario:
-
-```bash
-python pfc_cyclic_dependency_sim.py --scenario 1
-python pfc_cyclic_dependency_sim.py --scenario 2
-```
+python pfc_cyclic_dependency_sim.py 
 
 Optional flags:
 
+- --scenario {1,2,both} - select which scenario to run (default: both)
 - `--steps N`  (default: 30) — number of simulation steps.
 - `--out_dir PATH`  (default: `.../fattree_lossless_networks/plots`)
 - `--reports_dir PATH` (default: `.../fattree_lossless_networks/reports`)
