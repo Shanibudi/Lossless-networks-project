@@ -1,4 +1,4 @@
-# Simulation and Analysis of PFC Deadlock in Lossless Networks
+# PFC Cyclic Buffer Dependency Simulator
 
 This repository contains a Python-based simulator that demonstrates how **Priority Flow Control (PFC)** can lead to **cyclic buffer dependency (CBD)** behavior in lossless networks, including buffer buildup, link pauses, and deadlock.
 
