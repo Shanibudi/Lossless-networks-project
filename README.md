@@ -63,7 +63,7 @@ A link is considered paused when downstream_buffer >= PFC threshold. So if a pac
 
 Scenario 1 models a cyclic dependency involving two flows which forms a dependency cycle:
 
-<img width="2072" height="1634" alt="image" src="https://github.com/user-attachments/assets/7bd1d886-7f39-472b-862a-0f7ec53aaf7e" />
+<img width="800" height="600" alt="Scenario 1 Topology" src="plots/pfc_scenario_1.png">
 
 However, the system does **not deadlock** because the injection rate is low enough that at least one buffer always remains drainable.
 
