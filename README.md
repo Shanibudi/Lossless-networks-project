@@ -116,7 +116,7 @@ The plot below shows:
 - the cycle becomes saturated  
 - the system reaches a frozen state  
 
-<img width="800" height="600" alt="Scenario 1 Topology" src="plots/plots/pfc_scenario_2_occupancy.png">
+<img width="800" height="600" alt="Scenario 1 Topology" src="plots/pfc_scenario_2_occupancy.png">
 
 
 ### Link Pause Timeline
@@ -127,7 +127,7 @@ The plot below shows:
 - pauses become persistent  
 - forwarding stops permanently  
 
-<img width="800" height="600" alt="Scenario 1 Topology" src="plots/plots/pfc_scenario_2_link_pause.png.png">
+<img width="800" height="600" alt="Scenario 1 Topology" src="plots/pfc_scenario_2_link_pause.png.png">
 
 
 ## Why Scenario 2 Deadlocks
