@@ -1,0 +1,15 @@
+Scenario: Scenario 1: Cyclic buffer dependency without deadlock
+Buffer capacity: 10
+PFC threshold: 7
+Injection rate (pkts/step): {'F1': 1, 'F2': 1}
+Total packets per flow: {'F1': 8, 'F2': 8}
+Deadlock: NO
+Cycle buffers: L0 -> S0 -> L2 -> S1
+Initial = initial buffer occupancy; Final = final buffer occupancy.
+
+Switch | Initial | Final | PacketsPassed
+------ | ------- | ----- | -------------
+L0 | 2 | 6 | 30
+S0 | 2 | 6 | 26
+L2 | 2 | 6 | 30
+S1 | 2 | 6 | 26
