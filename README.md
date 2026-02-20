@@ -1,6 +1,6 @@
 # PFC Cyclic Buffer Dependency Simulator
 
-This repository contains a Python-based simulator that demonstrates how **Priority Flow Control (PFC)** can lead to **cyclic buffer dependency (CBD)** behavior in lossless networks, including buffer buildup, link pauses, and deadlock.
+This repository contains a Python-based simulator that demonstrates how Priority Flow Control (PFC) can lead to cyclic buffer dependency (CBD) behavior in lossless networks, including buffer buildup, link pauses, and deadlock.
 
 The simulator models a simplified leaf-spine topology where each switch has a single shared buffer, and packets are injected step-by-step according to predefined traffic flows. PFC is triggered whenever a downstream buffer crosses a threshold, potentially creating a circular wait condition.
 
