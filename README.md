@@ -6,8 +6,8 @@ The simulator models a simplified leaf-spine topology where each switch has a si
 
 The project includes two scenarios:
 
-** 🟦 Scenario 1:** Cyclic dependency without deadlock  
-** 🟥 Scenario 2:** Same dependency with an extra flow causing deadlock  
+🟦 **Scenario 1:** Cyclic dependency without deadlock  
+🟥 **Scenario 2:** Same dependency with an extra flow causing deadlock  
 
 
 ## ⚙️ Dependencies
