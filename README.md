@@ -1,4 +1,4 @@
-# 🧠 PFC Pause Propagation: CBD Formation and Deadlock Demo
+# PFC Pause Propagation: CBD Formation and Deadlock Demo
 
 This repository contains a Python-based simulator that demonstrates how Priority Flow Control (PFC) can lead to cyclic buffer dependency (CBD) behavior in lossless networks, including buffer buildup, link pauses, and deadlock simulation.
 
